@@ -1,5 +1,10 @@
 package designPatterns.creationalDesignPatterns.factoryAndAbstractFactoryPattern.simpleFactory;
 
+import org.reflections.Reflections;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -28,7 +33,7 @@ interface IHotDrinkFactory {
 class TeaFactory implements IHotDrinkFactory {
     @Override
     public IHotDrink prepare(int amount) {
-        System.out.printf("Put in tea bag, boil water, pour %svml, add lemon, enjoy!%n", amount);
+        System.out.printf("Put in tea bag, boil water, pour %s ml, add lemon, enjoy!%n", amount);
         return new Tea();
     }
 }
@@ -67,21 +72,58 @@ class HotDrinkMachine {
         for(AvailableHotDrink drink : AvailableHotDrink.values()) {
             String drinkName = drink.toString();
             String factoryName = ""+Character.toUpperCase(drinkName.charAt(0))+drinkName.substring(1).toLowerCase();
-            Class<?> factory = Class.forName(String.format("%sFactory", factoryName));
+            Class<?> factory = Class.forName(String.format("designPatterns.creationalDesignPatterns.factoryAndAbstractFactoryPattern.simpleFactory.%sFactory", factoryName));
             factories.put(drink, (IHotDrinkFactory) factory.getDeclaredConstructor().newInstance());
         }
 
         // Find all implementors of IHotDrinkFactory
-        //new Reflections("")
+        Set<Class<? extends IHotDrinkFactory>> types = new Reflections("designPatterns.creationalDesignPatterns.factoryAndAbstractFactoryPattern.simpleFactory")
+                .getSubTypesOf(IHotDrinkFactory.class);
+        for(Class<? extends IHotDrinkFactory> type : types) {
+            namedFactories.add(
+                    new Pair<>(
+                            type.getSimpleName().replace("Factory", ""),
+                            type.getDeclaredConstructor().newInstance()
+                    )
+            );
+        }
+
+    }
+
+    public IHotDrink makeDrink() throws IOException {
+        System.out.println("Available Drinks");
+        for(int index = 0; index < namedFactories.size(); index++) {
+            Pair<String, IHotDrinkFactory> items = namedFactories.get(index);
+            System.out.printf(" %d : %s \n", index, items.t1);
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        while(true) {
+            String s;
+            int i, amount;
+            if((s = reader.readLine()) != null
+                && (i = Integer.parseInt(s)) >= 0
+                && (i < namedFactories.size())) {
+                System.out.println("Specify amount : ");
+                s = reader.readLine();
+
+                if(s != null && (amount = Integer.parseInt(s)) > 0) {
+                    return namedFactories.get(i).t2.prepare(amount);
+                }
+            }
+            System.out.println("Incorrect input, try again.");
+        }
     }
 
 }
 
 public class SimpleAbstractFactory {
-    public static void main(String[] args) {
-        IHotDrinkFactory coffeeFactory = new CoffeeFactory();
-        coffeeFactory.prepare(30);
-        IHotDrinkFactory teaFactory = new TeaFactory();
-        teaFactory.prepare(20);
+    public static void main(String[] args) throws Exception {
+//        IHotDrinkFactory coffeeFactory = new CoffeeFactory();
+//        coffeeFactory.prepare(30);
+//        IHotDrinkFactory teaFactory = new TeaFactory();
+//        teaFactory.prepare(20);
+        HotDrinkMachine machine = new HotDrinkMachine();
+        machine.makeDrink();
     }
 }
