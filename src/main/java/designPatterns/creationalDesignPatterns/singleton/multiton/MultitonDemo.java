@@ -1,6 +1,8 @@
 package designPatterns.creationalDesignPatterns.singleton.multiton;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 enum PrinterSystems {
@@ -31,5 +33,7 @@ public class MultitonDemo {
         Printer instance1 = Printer.getInstance(PrinterSystems.AUXULARY);
         Printer instance2 = Printer.getInstance(PrinterSystems.AUXULARY);
         Printer instance3 = Printer.getInstance(PrinterSystems.PARIMARY);
+        int[] arr  = {1, 2, 4};
+        List<int[]> list = Arrays.asList(arr);
     }
 }
